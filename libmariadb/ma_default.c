@@ -292,7 +292,6 @@ my_bool _mariadb_read_options(MYSQL *mysql,
       exts,
       errors= 0;
   char filename[FN_REFLEN + 1];
-  char *env;
 
   if (config_file)
     return _mariadb_read_options_from_file(mysql, config_file, group);
@@ -308,17 +307,22 @@ my_bool _mariadb_read_options(MYSQL *mysql,
     }
   }
 #ifndef _WIN32
-  /* special case: .my.cnf in Home directory */
-  if ((env= getenv("HOME")))
   {
-    for (exts= 0; ini_exts[exts]; exts++)
+    /* special case: .my.cnf in Home directory */
+    char *env;
+
+    if ((env= getenv("HOME")))
     {
-      snprintf(filename, FN_REFLEN,
-               "%s%c.my.%s", env, FN_LIBCHAR, ini_exts[exts]);
-      if (!access(filename, R_OK))
-        errors+= _mariadb_read_options_from_file(mysql, filename, group);
+      for (exts= 0; ini_exts[exts]; exts++)
+      {
+        snprintf(filename, FN_REFLEN,
+                 "%s%c.my.%s", env, FN_LIBCHAR, ini_exts[exts]);
+        if (!access(filename, R_OK))
+          errors+= _mariadb_read_options_from_file(mysql, filename, group);
+      }
     }
   }
+
 #endif
   return errors;
 }
